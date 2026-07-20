@@ -65,7 +65,7 @@ locals {
   
   containers = [{
     name       = "terracd"
-    image      = var.task.container_image
+    image      = var.task.container_images.terracd
     essential  = true
     entryPoint = ["entrypoint-ssm.sh"]
     environment = local.environment_variables
@@ -83,7 +83,7 @@ locals {
   }]
   containers_with_metrics = concat(local.containers, var.task.metrics_enabled ?  [{
     name       = "aws-sigv4-proxy"
-    image      = "public.ecr.aws/aws-observability/aws-sigv4-proxy:ed72b37"
+    image      = var.task.container_images.sigv4_proxy
     essential  = true
     command = [
       "--port", ":8080",

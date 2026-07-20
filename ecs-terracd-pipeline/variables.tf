@@ -28,7 +28,13 @@ variable "tags" {
 variable "task" {
   description = "Parameters related to the task"
   type        = object({
-    container_image          = optional(string, "ferlabcrsj/terracd-aws:v0.2.0")
+    container_images         = optional(object({
+      terracd     = string
+      sigv4_proxy = string
+    }), {
+      terracd     = "ferlabcrsj/terracd-aws:v0.2.0"
+      sigv4_proxy = "public.ecr.aws/aws-observability/aws-sigv4-proxy:ed72b3"
+    })
     cpu                      = optional(number, 512)
     memory                   = optional(number, 1024)
     execution_role_arn       = string
