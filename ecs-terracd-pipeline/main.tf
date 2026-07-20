@@ -68,10 +68,10 @@ locals {
   }] : []
 
   containers = [{
-    name        = "terracd"
-    image       = var.task.container_image
-    essential   = true
-    entryPoint  = ["entrypoint-ssm.sh"]
+    name       = "terracd"
+    image      = var.task.container_images.terracd
+    essential  = true
+    entryPoint = ["entrypoint-ssm.sh"]
     environment = local.environment_variables
 
     secrets = local.secrets
@@ -85,10 +85,10 @@ locals {
       }
     }
   }]
-  containers_with_metrics = concat(local.containers, var.task.metrics_enabled ? [{
-    name      = "aws-sigv4-proxy"
-    image     = "public.ecr.aws/aws-observability/aws-sigv4-proxy:ed72b37"
-    essential = true
+  containers_with_metrics = concat(local.containers, var.task.metrics_enabled ?  [{
+    name       = "aws-sigv4-proxy"
+    image      = var.task.container_images.sigv4_proxy
+    essential  = true
     command = [
       "--port", ":8080",
       "--name", "aps",
