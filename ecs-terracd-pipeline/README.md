@@ -33,3 +33,9 @@ stays in the calling stack.
 ## Outputs
 
 None.
+
+## Notes
+
+The CloudWatch log group's `kms_key_id` and `retention_in_days` are left to the
+Landing Zone Accelerator (LZA) account controls (`ignore_changes`), so Terraform
+does not strip LZA-applied encryption or retention on each run.

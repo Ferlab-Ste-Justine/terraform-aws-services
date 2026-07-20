@@ -2,6 +2,10 @@ resource "aws_cloudwatch_log_group" "pipeline_logs" {
   name              = "/terracd-pipeline/${var.name}"
   retention_in_days = 30
   tags              = var.tags
+
+  lifecycle {
+    ignore_changes = [kms_key_id, retention_in_days]
+  }
 }
 
 resource "aws_ssm_parameter" "terracd_entrypoint" {
@@ -42,18 +46,18 @@ locals {
     [for key, val in var.task.environment_variables : {
       name  = key
       value = val
-    }], [{
-      name = "TERRACD_CONFIG_FILE"
+      }], [{
+      name  = "TERRACD_CONFIG_FILE"
       value = "/etc/terracd/config.yml"
-    }, {
-      name = "SSM_ENTRYPOINT_PATH"
+      }, {
+      name  = "SSM_ENTRYPOINT_PATH"
       value = "/terracd-pipeline/${var.name}/terracd-entrypoint"
-    }], try(var.task.git_auth.http, null) != null ? [{
-      name = "GIT_HTTP_USERNAME"
+      }], try(var.task.git_auth.http, null) != null ? [{
+      name  = "GIT_HTTP_USERNAME"
       value = var.task.git_auth.http.username
     }] : [],
     [for idx, key in var.task.git_trusted_signing_keys : {
-      name = "GIT_TRUSTED_KEY_${idx + 1}"
+      name  = "GIT_TRUSTED_KEY_${idx + 1}"
       value = key
     }]
   )
@@ -62,12 +66,12 @@ locals {
     name      = "GIT_HTTP_PASSWORD"
     valueFrom = var.task.git_auth.http.password_secret_arn
   }] : []
-  
+
   containers = [{
-    name       = "terracd"
-    image      = var.task.container_image
-    essential  = true
-    entryPoint = ["entrypoint-ssm.sh"]
+    name        = "terracd"
+    image       = var.task.container_image
+    essential   = true
+    entryPoint  = ["entrypoint-ssm.sh"]
     environment = local.environment_variables
 
     secrets = local.secrets
@@ -81,10 +85,10 @@ locals {
       }
     }
   }]
-  containers_with_metrics = concat(local.containers, var.task.metrics_enabled ?  [{
-    name       = "aws-sigv4-proxy"
-    image      = "public.ecr.aws/aws-observability/aws-sigv4-proxy:ed72b37"
-    essential  = true
+  containers_with_metrics = concat(local.containers, var.task.metrics_enabled ? [{
+    name      = "aws-sigv4-proxy"
+    image     = "public.ecr.aws/aws-observability/aws-sigv4-proxy:ed72b37"
+    essential = true
     command = [
       "--port", ":8080",
       "--name", "aps",
@@ -94,7 +98,7 @@ locals {
       "--upstream-url-scheme", "https",
       "--log-failed-requests",
     ]
-    environment = [{name = "AWS_SDK_LOAD_CONFIG", value = "true"}]
+    environment = [{ name = "AWS_SDK_LOAD_CONFIG", value = "true" }]
 
     logConfiguration = {
       logDriver = "awslogs"
