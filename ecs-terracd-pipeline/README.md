@@ -21,7 +21,7 @@ stays in the calling stack.
 | `task` | `object` | yes | Task settings (see below) |
 | `scheduler` | `object` | yes | Scheduler settings (see below) |
 
-`task` object: `container_image` (default `ferlabcrsj/terracd-aws:v0.2.0`), `cpu`
+`task` object: `container_images` (default `{ terracd = "ferlabcrsj/terracd-aws:v0.3.0", sigv4_proxy = "public.ecr.aws/aws-observability/aws-sigv4-proxy:ed72b3" }`), `cpu`
 (512), `memory` (1024), `execution_role_arn`, `task_role_arn`,
 `environment_variables`, `terracd_config` (terracd config file content),
 `git_auth.http.{username, password_secret_arn}` (optional), `git_trusted_signing_keys`
