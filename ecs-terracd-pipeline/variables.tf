@@ -32,7 +32,7 @@ variable "task" {
       terracd     = string
       sigv4_proxy = string
     }), {
-      terracd     = "ferlabcrsj/terracd-aws:v0.2.0"
+      terracd     = "ferlabcrsj/terracd-aws:v0.3.0"
       sigv4_proxy = "public.ecr.aws/aws-observability/aws-sigv4-proxy:ed72b3"
     })
     cpu                      = optional(number, 512)
