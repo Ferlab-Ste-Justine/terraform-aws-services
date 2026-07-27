@@ -15,6 +15,12 @@ variable "tags" {
   default     = {}
 }
 
+variable "kms_key_arn" {
+  description = "KMS key ARN for SSE-KMS. Defaults to SSE-S3 (AES256) when empty."
+  type        = string
+  default     = ""
+}
+
 variable "cors_rules" {
   description = "CORS rules for the bucket. Empty (default) creates no CORS configuration."
   type = list(object({
