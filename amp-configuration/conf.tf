@@ -7,7 +7,7 @@ module "prometheus_confs" {
 }
 
 resource "aws_prometheus_rule_group_namespace" "prometheus_confs" {
-  for_each = module.prometheus_confs.rules
+  for_each = { for rule in module.prometheus_confs.rules : rule.name => rule }
 
   workspace_id = var.workspace_id
   name = each.value.name
