@@ -88,7 +88,7 @@ locals {
   containers_with_metrics = concat(local.containers, var.task.metrics_enabled ?  [{
     name       = "aws-sigv4-proxy"
     image      = var.task.container_images.sigv4_proxy
-    essential  = true
+    essential  = false
     command = [
       "--port", ":8080",
       "--name", "aps",
