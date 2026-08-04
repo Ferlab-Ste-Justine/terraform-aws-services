@@ -48,7 +48,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "backend" {
   }
 
   dynamic "rule" {
-    for_each = var.noncurrent_version_glacier_days > 0 ? [1] : []
+    for_each = var.lifecycle.noncurrent_version_glacier_days > 0 ? [1] : []
     content {
       id     = "noncurrent-version-glacier"
       status = "Enabled"
@@ -56,14 +56,14 @@ resource "aws_s3_bucket_lifecycle_configuration" "backend" {
       filter {}
 
       noncurrent_version_transition {
-        noncurrent_days = var.noncurrent_version_glacier_days
+        noncurrent_days = var.lifecycle.noncurrent_version_glacier_days
         storage_class   = "GLACIER_IR"
       }
     }
   }
 }
 
-# Terraform requires a Hash Key named "LockID" for S3 state locking.
+// Terraform requires a Hash Key named "LockID" for S3 state locking.
 resource "aws_dynamodb_table" "backend" {
   name         = "${var.pipeline_name}-tflock"
   billing_mode = "PAY_PER_REQUEST"

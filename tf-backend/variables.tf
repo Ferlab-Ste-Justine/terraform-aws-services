@@ -13,8 +13,10 @@ variable "region" {
   type        = string
 }
 
-variable "noncurrent_version_glacier_days" {
-  description = "Transition noncurrent versions to GLACIER_IR after this many days. Set to 0 to disable."
-  type        = number
-  default     = 90
+variable "lifecycle" {
+  description = "Lifecycle configuration for the state bucket."
+  type = object({
+    noncurrent_version_glacier_days = optional(number, 90)
+  })
+  default = {}
 }

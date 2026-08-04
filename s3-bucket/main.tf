@@ -71,7 +71,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "bucket" {
       status = "Enabled"
 
       filter {
-        prefix = rule.value.prefix
+        prefix = rule.value.prefix != "" ? rule.value.prefix : null
       }
 
       dynamic "noncurrent_version_transition" {
