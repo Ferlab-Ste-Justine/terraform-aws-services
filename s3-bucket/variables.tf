@@ -32,3 +32,22 @@ variable "cors_rules" {
   }))
   default = []
 }
+
+variable "lifecycle_rules" {
+  description = "Lifecycle rules applied in addition to the built-in abort-incomplete-multipart rule."
+  type = list(object({
+    id     = string
+    prefix = optional(string, "")
+    noncurrent_version_transitions = optional(list(object({
+      days          = number
+      storage_class = string
+    })), [])
+    noncurrent_version_expiration_days = optional(number, null)
+    transitions = optional(list(object({
+      days          = number
+      storage_class = string
+    })), [])
+    expiration_days = optional(number, null)
+  }))
+  default = []
+}

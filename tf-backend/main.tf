@@ -46,6 +46,21 @@ resource "aws_s3_bucket_lifecycle_configuration" "backend" {
       days_after_initiation = 7
     }
   }
+
+  dynamic "rule" {
+    for_each = var.noncurrent_version_glacier_days > 0 ? [1] : []
+    content {
+      id     = "noncurrent-version-glacier"
+      status = "Enabled"
+
+      filter {}
+
+      noncurrent_version_transition {
+        noncurrent_days = var.noncurrent_version_glacier_days
+        storage_class   = "GLACIER_IR"
+      }
+    }
+  }
 }
 
 # Terraform requires a Hash Key named "LockID" for S3 state locking.
