@@ -13,7 +13,7 @@ variable "region" {
   type        = string
 }
 
-variable "lifecycle" {
+variable "noncurrent_lifecycle" {
   description = "Lifecycle configuration for the state bucket."
   type = object({
     noncurrent_version_glacier_days = optional(number, 90)

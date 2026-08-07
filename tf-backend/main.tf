@@ -48,7 +48,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "backend" {
   }
 
   dynamic "rule" {
-    for_each = var.lifecycle.noncurrent_version_glacier_days > 0 ? [1] : []
+    for_each = var.noncurrent_lifecycle.noncurrent_version_glacier_days > 0 ? [1] : []
     content {
       id     = "noncurrent-version-glacier"
       status = "Enabled"
@@ -56,7 +56,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "backend" {
       filter {}
 
       noncurrent_version_transition {
-        noncurrent_days = var.lifecycle.noncurrent_version_glacier_days
+        noncurrent_days = var.noncurrent_lifecycle.noncurrent_version_glacier_days
         storage_class   = "GLACIER_IR"
       }
     }
