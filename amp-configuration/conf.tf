@@ -1,5 +1,5 @@
 module "prometheus_confs" {
-  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-prometheus-configuration.git?ref=v0.1.0"
+  source = "git::https://github.com/Ferlab-Ste-Justine/terraform-prometheus-configuration.git?ref=v0.3.0"
   terracd_jobs             = var.terracd_jobs
   node_exporter_jobs       = var.node_exporter_jobs
   blackbox_exporter_jobs   = var.blackbox_exporter_jobs
