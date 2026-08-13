@@ -1,6 +1,6 @@
 # amp-configuration
 
-A thin AWS wrapper around [`terraform-prometheus-configuration`](https://github.com/Ferlab-Ste-Justine/terraform-prometheus-configuration/tree/v0.1.0).
+A thin AWS wrapper around [`terraform-prometheus-configuration`](https://github.com/Ferlab-Ste-Justine/terraform-prometheus-configuration/tree/v0.3.0).
 
 This module takes a set of high-level monitoring job definitions, uses the upstream Ferlab module to render them into Prometheus alerting rules, and deploys those rules to an **Amazon Managed Service for Prometheus (AMP)** workspace as rule group namespaces.
 
@@ -24,7 +24,7 @@ The rule-authoring logic lives entirely in the upstream module; this wrapper onl
 
 The job list objects mirror the upstream module's schema one-to-one. Rather than duplicate every field here, refer to the upstream documentation for the meaning of each attribute and its expected values:
 
-**https://github.com/Ferlab-Ste-Justine/terraform-prometheus-configuration/tree/v0.1.0**
+**https://github.com/Ferlab-Ste-Justine/terraform-prometheus-configuration/tree/v0.3.0**
 
 The exact object shapes are defined in [`variables.tf`](./variables.tf).
 
@@ -35,4 +35,4 @@ The exact object shapes are defined in [`variables.tf`](./variables.tf).
 ## Requirements
 
 - The `aws` provider, configured with permissions to manage `aws_prometheus_rule_group_namespace` resources in the target workspace.
-- Git access to `github.com` at plan/init time, since the upstream module is sourced via a pinned git ref (`v0.1.0`).
+- Git access to `github.com` at plan/init time, since the upstream module is sourced via a pinned git ref (`v0.3.0`).
