@@ -23,6 +23,12 @@ variable "account_id" {
   type        = string
 }
 
+variable "notification_sources" {
+  description = "Comma-separated list of active processors (alertmanager, cloudwatch, rds)"
+  type        = string
+  default     = "alertmanager,cloudwatch,rds"
+}
+
 variable "tags" {
   description = "Tags to apply to all resources"
   type        = map(string)

@@ -55,7 +55,8 @@ resource "aws_lambda_function" "notifier" {
 
   environment {
     variables = {
-      SLACK_WEBHOOK_SECRET = var.slack_webhook_secret
+      SLACK_WEBHOOK_SECRET  = var.slack_webhook_secret
+      NOTIFICATION_SOURCES  = var.notification_sources
     }
   }
 
