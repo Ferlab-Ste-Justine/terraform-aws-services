@@ -9,12 +9,7 @@ variable "sns_topic_arn" {
 }
 
 variable "slack_webhook_secret" {
-  description = "Secrets Manager secret name/ARN holding the Slack webhook URL"
-  type        = string
-}
-
-variable "slack_webhook_secret_arn" {
-  description = "ARN of the Secrets Manager secret (for IAM policy)"
+  description = "Secrets Manager secret name holding the Slack webhook URL"
   type        = string
 }
 

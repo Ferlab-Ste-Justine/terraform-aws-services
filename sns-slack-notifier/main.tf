@@ -1,3 +1,7 @@
+data "aws_secretsmanager_secret" "slack_webhook" {
+  name = var.slack_webhook_secret
+}
+
 resource "aws_iam_role" "notifier" {
   name = var.name
 
@@ -14,7 +18,7 @@ resource "aws_iam_role" "notifier" {
 }
 
 resource "aws_iam_role_policy" "notifier" {
-  name = "sns-slack-notifier"
+  name = var.name
   role = aws_iam_role.notifier.name
 
   policy = jsonencode({
@@ -23,11 +27,11 @@ resource "aws_iam_role_policy" "notifier" {
       {
         Effect   = "Allow"
         Action   = ["secretsmanager:GetSecretValue"]
-        Resource = [var.slack_webhook_secret_arn]
+        Resource = [data.aws_secretsmanager_secret.slack_webhook.arn]
       },
       {
-        Effect = "Allow"
-        Action = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
+        Effect   = "Allow"
+        Action   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
         Resource = "arn:aws:logs:${var.region}:${var.account_id}:log-group:/aws/lambda/${var.name}:*"
       },
     ]
@@ -41,13 +45,13 @@ data "archive_file" "notifier" {
 }
 
 resource "aws_lambda_function" "notifier" {
-  function_name = var.name
-  role          = aws_iam_role.notifier.arn
-  filename      = data.archive_file.notifier.output_path
+  function_name    = var.name
+  role             = aws_iam_role.notifier.arn
+  filename         = data.archive_file.notifier.output_path
   source_code_hash = data.archive_file.notifier.output_base64sha256
-  handler       = "notifier.handler"
-  runtime       = "python3.12"
-  timeout       = 30
+  handler          = "notifier.handler"
+  runtime          = "python3.12"
+  timeout          = 30
 
   environment {
     variables = {
