@@ -11,5 +11,6 @@ receivers:
       - topic_arn: ${sns_topic_arn}
         sigv4:
           region: ${region}
-        subject: '{{ .CommonAnnotations.summary }}'
+        send_resolved: true
+        subject: '[{{ .Status | toUpper }}] {{ .CommonAnnotations.summary }}'
         message: '{{ template "alert_message" . }}'

@@ -30,6 +30,16 @@ resource "aws_kms_key_policy" "amp_alerts" {
         Condition = {
           StringEquals = { "aws:SourceAccount" = var.account_id }
         }
+      },
+      {
+        Sid       = "AllowSNSToUseKey"
+        Effect    = "Allow"
+        Principal = { Service = "sns.amazonaws.com" }
+        Action    = ["kms:GenerateDataKey", "kms:Decrypt"]
+        Resource  = "*"
+        Condition = {
+          StringEquals = { "aws:SourceAccount" = var.account_id }
+        }
       }
     ]
   })
