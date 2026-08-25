@@ -1,6 +1,6 @@
 route:
   group_by: ['alertname']
-  group_wait: 30s
+  group_wait: 0s
   group_interval: 5m
   repeat_interval: 1h
   receiver: default
