@@ -13,4 +13,4 @@ receivers:
           region: ${region}
         send_resolved: true
         subject: '[{{ .Status | toUpper }}] {{ .CommonAnnotations.summary }}'
-        message: '{{ template "alert_message" . }}'
+        message: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
