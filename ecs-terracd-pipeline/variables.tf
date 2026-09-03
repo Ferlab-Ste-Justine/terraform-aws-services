@@ -27,34 +27,34 @@ variable "tags" {
 
 variable "task" {
   description = "Parameters related to the task"
-  type        = object({
-    container_images         = optional(object({
+  type = object({
+    container_images = optional(object({
       terracd     = string
       sigv4_proxy = string
-    }), {
+      }), {
       terracd     = "ferlabcrsj/terracd-aws:v0.3.0"
       sigv4_proxy = "public.ecr.aws/aws-observability/aws-sigv4-proxy:ed72b3"
     })
-    cpu                      = optional(number, 512)
-    memory                   = optional(number, 1024)
-    execution_role_arn       = string
-    task_role_arn            = string
-    environment_variables    = map(string)
-    terracd_config           = string
-    git_auth                 = optional(object({
+    cpu                   = optional(number, 512)
+    memory                = optional(number, 1024)
+    execution_role_arn    = string
+    task_role_arn         = string
+    environment_variables = map(string)
+    terracd_config        = string
+    git_auth = optional(object({
       http = optional(object({
         username            = optional(string, "git")
         password_secret_arn = string
       }))
     }))
-    git_trusted_signing_keys = optional(list(string), [])
-    metrics_enabled          = optional(bool, false)
+    git_trusted_keys_ssm_prefix = optional(string)
+    metrics_enabled             = optional(bool, false)
   })
 }
 
 variable "scheduler" {
   description = "Parameters related to the scheduler"
-  type        = object({
+  type = object({
     schedule_expression = optional(string, "rate(15 minutes)")
     max_retry_attempts  = optional(number, 0)
     esc_cluster_arn     = string
