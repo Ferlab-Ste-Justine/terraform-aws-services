@@ -1,3 +1,7 @@
+locals {
+  trusted_keys_prefix = var.task.git_trusted_keys_ssm_prefix != null ? "/${trim(var.task.git_trusted_keys_ssm_prefix, "/")}" : null
+}
+
 resource "aws_cloudwatch_log_group" "pipeline_logs" {
   name              = "/terracd-pipeline/${var.name}"
   retention_in_days = 30
@@ -12,8 +16,9 @@ resource "aws_ssm_parameter" "terracd_entrypoint" {
   name = "/terracd-pipeline/${var.name}/terracd-entrypoint"
   type = "String"
   value = templatefile("${path.module}/entrypoint.sh.tpl", {
-    terracd_config = var.task.terracd_config
-    git_auth       = var.task.git_auth
+    terracd_config              = var.task.terracd_config
+    git_auth                    = var.task.git_auth
+    git_trusted_keys_ssm_prefix = local.trusted_keys_prefix
   })
 
   tags = var.tags
@@ -24,13 +29,21 @@ resource "aws_iam_policy" "pipeline_entrypoint_access" {
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
-      {
+    Statement = concat(
+      [{
         Effect   = "Allow"
         Action   = ["ssm:GetParameter", "ssm:GetParameters", "ssm:ListTagsForResource"]
         Resource = [aws_ssm_parameter.terracd_entrypoint.arn]
-      }
-    ]
+      }],
+      local.trusted_keys_prefix != null ? [{
+        Effect = "Allow"
+        Action = ["ssm:GetParameter", "ssm:GetParameters", "ssm:GetParametersByPath"]
+        Resource = [
+          "arn:aws:ssm:${var.region}:${var.account_id}:parameter${local.trusted_keys_prefix}",
+          "arn:aws:ssm:${var.region}:${var.account_id}:parameter${local.trusted_keys_prefix}/*",
+        ]
+      }] : []
+    )
   })
 }
 
@@ -56,10 +69,10 @@ locals {
       name  = "GIT_HTTP_USERNAME"
       value = var.task.git_auth.http.username
     }] : [],
-    [for idx, key in var.task.git_trusted_signing_keys : {
-      name  = "GIT_TRUSTED_KEY_${idx + 1}"
-      value = key
-    }]
+    var.task.git_trusted_keys_ssm_prefix != null ? [{
+      name  = "GIT_TRUSTED_KEYS_SSM_PREFIX"
+      value = local.trusted_keys_prefix
+    }] : []
   )
 
   secrets = try(var.task.git_auth.http, null) != null ? [{
@@ -68,10 +81,10 @@ locals {
   }] : []
 
   containers = [{
-    name       = "terracd"
-    image      = var.task.container_images.terracd
-    essential  = true
-    entryPoint = ["entrypoint-ssm.sh"]
+    name        = "terracd"
+    image       = var.task.container_images.terracd
+    essential   = true
+    entryPoint  = ["entrypoint-ssm.sh"]
     environment = local.environment_variables
 
     secrets = local.secrets
@@ -85,10 +98,10 @@ locals {
       }
     }
   }]
-  containers_with_metrics = concat(local.containers, var.task.metrics_enabled ?  [{
-    name       = "aws-sigv4-proxy"
-    image      = var.task.container_images.sigv4_proxy
-    essential  = false
+  containers_with_metrics = concat(local.containers, var.task.metrics_enabled ? [{
+    name      = "aws-sigv4-proxy"
+    image     = var.task.container_images.sigv4_proxy
+    essential = false
     command = [
       "--port", ":8080",
       "--name", "aps",

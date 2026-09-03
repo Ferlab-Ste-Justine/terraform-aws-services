@@ -24,8 +24,24 @@ stays in the calling stack.
 `task` object: `container_images` (default `{ terracd = "ferlabcrsj/terracd-aws:v0.3.0", sigv4_proxy = "public.ecr.aws/aws-observability/aws-sigv4-proxy:ed72b3" }`), `cpu`
 (512), `memory` (1024), `execution_role_arn`, `task_role_arn`,
 `environment_variables`, `terracd_config` (terracd config file content),
-`git_auth.http.{username, password_secret_arn}` (optional), `git_trusted_signing_keys`
-(optional list), `metrics_enabled` (default `false`, adds the sigv4 proxy sidecar).
+`git_auth.http.{username, password_secret_arn}` (optional),
+`git_trusted_keys_ssm_prefix` (optional), `metrics_enabled` (default `false`, adds the
+sigv4 proxy sidecar).
+
+When `git_trusted_keys_ssm_prefix` is set, the entrypoint copies every parameter under that
+SSM prefix into `/etc/terracd/git-trusted-keys/` before starting terracd, and the module
+grants the task role read access to the prefix. Point `gpg_public_keys_paths` in the terracd
+config at the directory itself, not at individual files: terracd walks the path, so the
+number of trusted keys can change without touching any configuration.
+
+The entrypoint exits non-zero when the prefix yields no key, and again when it writes fewer
+keys than the prefix listed. Without the first check, an empty prefix or a missing IAM grant
+would leave terracd with nothing to verify against and it would apply unverified commits
+silently. Without the second, a parameter that fails mid-sync leaves a truncated keyring and
+terracd fails on a parse error instead of saying which key is missing.
+
+Bootstrapping the pipeline that owns the keys is the one case where the prefix is left unset:
+it cannot verify against parameters it has not written yet. Set the prefix once it has run.
 
 `scheduler` object: `schedule_expression` (default `rate(15 minutes)`),
 `max_retry_attempts` (default 0), `esc_cluster_arn`, `subnets`, `security_groups`.
