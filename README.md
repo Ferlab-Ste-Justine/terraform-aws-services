@@ -35,6 +35,7 @@ Always pin `?ref=<tag>`; never track a branch.
 | `s3-bucket` | S3 bucket with sane defaults. |
 | `tf-backend` | S3 bucket and DynamoDB table for a Terraform remote state backend. |
 | `ecs-terracd-pipeline` | ECS Fargate pipeline running terracd. |
+| `ferlab-users` | Centralised ferlab users list and gpg keys, stored in SSM. |
 | `fsx-lustre` | FSx for Lustre file system with data repository associations. |
 | `pg-database` | Postgres role and database provisioning. |
 | `pg-rds-global-iam` | Account-wide RDS IAM (enhanced monitoring role). |
