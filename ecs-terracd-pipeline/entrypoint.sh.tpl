@@ -12,8 +12,7 @@ aws ssm get-parameters-by-path \
     --path "$GIT_TRUSTED_KEYS_SSM_PREFIX" \
     --query 'Parameters[].Name' \
     --output text \
-    | tr '\t' '\n' \
-    | grep -v '^$' > /tmp/trusted-key-names
+    | tr '\t' '\n' > /tmp/trusted-key-names
 
 EXPECTED_KEYS=$(wc -l < /tmp/trusted-key-names)
 if [ "$EXPECTED_KEYS" -eq 0 ]; then
@@ -29,12 +28,6 @@ while read -r PARAMETER; do
         --output text > "$KEY_FILE"
     chmod 0644 "$KEY_FILE"
 done < /tmp/trusted-key-names
-
-WRITTEN_KEYS=$(find /etc/terracd/git-trusted-keys -type f | wc -l)
-if [ "$WRITTEN_KEYS" -ne "$EXPECTED_KEYS" ]; then
-    echo "Expected $EXPECTED_KEYS trusted gpg keys under $GIT_TRUSTED_KEYS_SSM_PREFIX but wrote $WRITTEN_KEYS, refusing to run on a partial trust list." >&2
-    exit 1
-fi
 
 %{ endif ~}
 

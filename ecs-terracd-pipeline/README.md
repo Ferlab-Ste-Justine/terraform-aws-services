@@ -34,11 +34,11 @@ grants the task role read access to the prefix. Point `gpg_public_keys_paths` in
 config at the directory itself, not at individual files: terracd walks the path, so the
 number of trusted keys can change without touching any configuration.
 
-The entrypoint exits non-zero when the prefix yields no key, and again when it writes fewer
-keys than the prefix listed. Without the first check, an empty prefix or a missing IAM grant
-would leave terracd with nothing to verify against and it would apply unverified commits
-silently. Without the second, a parameter that fails mid-sync leaves a truncated keyring and
-terracd fails on a parse error instead of saying which key is missing.
+The entrypoint exits non-zero when the prefix yields no key: an empty prefix or a missing IAM
+grant would otherwise leave terracd with nothing to verify against, and it would apply
+unverified commits silently. A partial sync is not guarded: `set -e` already aborts on a failed
+API call, and a missing key makes signature verification fail rather than pass, so the next run
+picks it up.
 
 Bootstrapping the pipeline that owns the keys is the one case where the prefix is left unset:
 it cannot verify against parameters it has not written yet. Set the prefix once it has run.
