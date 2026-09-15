@@ -86,3 +86,21 @@ variable "consolidate_after" {
   type        = string
   default     = "5m"
 }
+
+variable "pod_subnet_ids" {
+  description = "Subnets holding pod IPs, separate from the node subnets. Requires pod_security_group_ids."
+  type        = list(string)
+  default     = []
+}
+
+variable "pod_security_group_ids" {
+  description = "Security groups attached to the pod ENIs. Requires pod_subnet_ids."
+  type        = list(string)
+  default     = []
+}
+
+variable "enable_prefix_delegation" {
+  description = "Pod IP allocation: true delegates /28 prefixes, false assigns one IP per pod. Null leaves the Auto Mode default."
+  type        = bool
+  default     = null
+}
