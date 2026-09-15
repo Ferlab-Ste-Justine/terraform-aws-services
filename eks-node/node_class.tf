@@ -4,9 +4,9 @@ locals {
     podSecurityGroupSelectorTerms = [for security_group in var.pod_security_group_ids : { id = security_group }]
   } : {}
 
-  nodeclass_advanced_networking = var.ipv4_prefix_size != null ? {
+  nodeclass_advanced_networking = var.enable_prefix_delegation != null ? {
     advancedNetworking = {
-      ipv4PrefixSize = var.ipv4_prefix_size
+      ipv4PrefixSize = var.enable_prefix_delegation ? "Auto" : "32"
     }
   } : {}
 }
@@ -18,25 +18,26 @@ resource "kubernetes_manifest" "karpenter_nodeclass" {
     metadata = {
       name = var.nodeclass_name
     }
-    spec = merge({
-      ephemeralStorage       = var.ephemeral_storage
-      networkPolicy          = "DefaultAllow"
-      networkPolicyEventLogs = "Disabled"
-      role                   = var.eks_node_role_name
-      securityGroupSelectorTerms = concat(
-        [{ id = var.cluster_security_group_id }],
-        var.external_node_security_group_id != null ? [{ id = var.external_node_security_group_id }] : []
-      )
-      snatPolicy = "Random"
-      subnetSelectorTerms = [for subnet in var.private_subnet_ids : {
-        id = subnet
-      }]
-      tags = merge(var.tags, {
-        Name                             = var.nodeclass_name
-        "eks:eks-cluster-name"           = var.cluster_name
-        "eks:kubernetes-node-class-name" = var.nodeclass_name
-        "eks:kubernetes-node-pool-name"  = var.nodepool_name
-      })
+    spec = merge(
+      {
+        ephemeralStorage       = var.ephemeral_storage
+        networkPolicy          = "DefaultAllow"
+        networkPolicyEventLogs = "Disabled"
+        role                   = var.eks_node_role_name
+        securityGroupSelectorTerms = concat(
+          [{ id = var.cluster_security_group_id }],
+          var.external_node_security_group_id != null ? [{ id = var.external_node_security_group_id }] : []
+        )
+        snatPolicy = "Random"
+        subnetSelectorTerms = [for subnet in var.private_subnet_ids : {
+          id = subnet
+        }]
+        tags = merge(var.tags, {
+          Name                             = var.nodeclass_name
+          "eks:eks-cluster-name"           = var.cluster_name
+          "eks:kubernetes-node-class-name" = var.nodeclass_name
+          "eks:kubernetes-node-pool-name"  = var.nodepool_name
+        })
       },
       local.nodeclass_pod_networking,
       local.nodeclass_advanced_networking,

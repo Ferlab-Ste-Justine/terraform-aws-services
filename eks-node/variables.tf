@@ -99,13 +99,8 @@ variable "pod_security_group_ids" {
   default     = []
 }
 
-variable "ipv4_prefix_size" {
-  description = "Pod IP allocation mode: \"Auto\" for /28 prefix delegation, \"32\" for one IP per pod. Null leaves the Auto Mode default."
-  type        = string
+variable "enable_prefix_delegation" {
+  description = "Pod IP allocation: true delegates /28 prefixes, false assigns one IP per pod. Null leaves the Auto Mode default."
+  type        = bool
   default     = null
-
-  validation {
-    condition     = var.ipv4_prefix_size == null || contains(["Auto", "32"], coalesce(var.ipv4_prefix_size, "Auto"))
-    error_message = "ipv4_prefix_size must be \"Auto\" or \"32\"."
-  }
 }
