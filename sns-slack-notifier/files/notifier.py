@@ -83,7 +83,7 @@ def handler(event, context):
     processors = [PROCESSOR_MAP[s.strip()] for s in sources if s.strip() in PROCESSOR_MAP]
 
     for record in event["Records"]:
-        subject = record["Sns"].get("Subject", "")
+        subject = record["Sns"].get("Subject") or ""
         raw_message = record["Sns"]["Message"]
 
         matched = False
