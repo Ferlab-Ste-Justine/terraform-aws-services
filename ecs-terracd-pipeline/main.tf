@@ -24,13 +24,27 @@ resource "aws_iam_policy" "pipeline_entrypoint_access" {
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
-      {
-        Effect   = "Allow"
-        Action   = ["ssm:GetParameter", "ssm:GetParameters", "ssm:ListTagsForResource"]
-        Resource = [aws_ssm_parameter.terracd_entrypoint.arn]
-      }
-    ]
+    Statement = concat(
+      [
+        {
+          Effect   = "Allow"
+          Action   = ["ssm:GetParameter", "ssm:GetParameters", "ssm:ListTagsForResource"]
+          Resource = [aws_ssm_parameter.terracd_entrypoint.arn]
+        }
+      ],
+      var.outcome_notification == null ? [] : [
+        {
+          Effect   = "Allow"
+          Action   = ["sns:Publish"]
+          Resource = [var.outcome_notification.sns_topic_arn]
+        },
+        {
+          Effect   = "Allow"
+          Action   = ["kms:GenerateDataKey", "kms:Decrypt"]
+          Resource = [var.outcome_notification.kms_key_arn]
+        }
+      ]
+    )
   })
 }
 

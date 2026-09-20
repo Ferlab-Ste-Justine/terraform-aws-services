@@ -62,3 +62,12 @@ variable "scheduler" {
     security_groups     = list(string)
   })
 }
+
+variable "outcome_notification" {
+  description = "SNS topic the pipeline publishes its run outcome to."
+  type = object({
+    sns_topic_arn = string
+    kms_key_arn   = string
+  })
+  default = null
+}
