@@ -50,10 +50,28 @@ def process_rds(subject, raw_message):
     return json.dumps({"text": text}).encode(), True
 
 
+def process_terracd(subject, raw_message):
+    try:
+        msg = json.loads(raw_message)
+    except (json.JSONDecodeError, TypeError):
+        return None, False
+    if "terracd_job" not in msg:
+        return None, False
+    job = msg["terracd_job"]
+    result = msg.get("result", "failure")
+    emoji = ":red_circle:" if result == "failure" else ":large_green_circle:"
+    text = f"{emoji} *terracd* `{job}`\nResult: `{result}`"
+    log_group = msg.get("log_group")
+    if log_group:
+        text += f"\nLogs: `{log_group}`"
+    return json.dumps({"text": text}).encode(), True
+
+
 PROCESSOR_MAP = {
     "alertmanager": process_alertmanager,
     "cloudwatch":   process_cloudwatch,
     "rds":          process_rds,
+    "terracd":      process_terracd,
 }
 
 

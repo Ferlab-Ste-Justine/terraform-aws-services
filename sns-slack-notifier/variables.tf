@@ -24,9 +24,9 @@ variable "account_id" {
 }
 
 variable "notification_sources" {
-  description = "Comma-separated list of active processors (alertmanager, cloudwatch, rds)"
+  description = "Comma-separated list of active processors (alertmanager, cloudwatch, rds, terracd)"
   type        = string
-  default     = "alertmanager,cloudwatch,rds"
+  default     = "alertmanager,cloudwatch,rds,terracd"
 }
 
 variable "tags" {
