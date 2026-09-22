@@ -86,3 +86,23 @@ variable "consolidate_after" {
   type        = string
   default     = "5m"
 }
+
+variable "ipv4_prefix_size" {
+  description = "Pod IP allocation mode: \"Auto\" for /28 prefix delegation, \"32\" for one IP per pod. Null omits the field and leaves the cluster default."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.ipv4_prefix_size == null || contains(["Auto", "32"], var.ipv4_prefix_size)
+    error_message = "ipv4_prefix_size must be \"Auto\" or \"32\"."
+  }
+}
+
+variable "pod_networking" {
+  description = "Subnets and security groups for the secondary ENIs carrying pod IPs. Null keeps pods on the node subnets."
+  type = object({
+    subnet_ids         = list(string)
+    security_group_ids = list(string)
+  })
+  default = null
+}
