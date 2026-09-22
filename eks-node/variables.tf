@@ -98,6 +98,12 @@ variable "ipv4_prefix_size" {
   }
 }
 
+variable "enable_v4_egress" {
+  description = "Whether pods get an IPv4 egress interface. Must be declared whenever ipv4_prefix_size is, or the provider's consistency check fails on the API server default."
+  type        = bool
+  default     = true
+}
+
 variable "pod_networking" {
   description = "Subnets and security groups for the secondary ENIs carrying pod IPs. Null keeps pods on the node subnets."
   type = object({

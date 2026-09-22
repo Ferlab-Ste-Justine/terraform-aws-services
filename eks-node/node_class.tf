@@ -7,6 +7,7 @@ locals {
   advanced_networking = var.ipv4_prefix_size != null ? {
     advancedNetworking = {
       ipv4PrefixSize = var.ipv4_prefix_size
+      enableV4Egress = var.enable_v4_egress
     }
   } : {}
 }
