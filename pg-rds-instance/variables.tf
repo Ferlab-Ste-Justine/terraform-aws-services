@@ -131,9 +131,11 @@ variable "networking" {
     access_control = optional(object({
       existing_sg_ids = optional(list(string), [])
       allowed_sg_ids = optional(list(string), [])
+      allow_subnet_ingress = optional(bool, null)
     }), {
       existing_sg_ids = []
       allowed_sg_ids = []
+      allow_subnet_ingress = null
     })
     #Note that for a true value to work, the database still need to belong to a public subnet 
     #and have security groups that allow the incoming traffic.

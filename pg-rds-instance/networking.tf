@@ -1,13 +1,17 @@
 locals {
-  use_existing_sgs    = length(var.networking.access_control.existing_sg_ids) > 0
-  use_allowed_sgs     = !local.use_existing_sgs && length(var.networking.access_control.allowed_sg_ids) > 0
-  use_subnet_fallback = !local.use_existing_sgs && !local.use_allowed_sgs
+  use_existing_sgs = length(var.networking.access_control.existing_sg_ids) > 0
+  use_allowed_sgs  = !local.use_existing_sgs && length(var.networking.access_control.allowed_sg_ids) > 0
+  use_subnet_ingress = !local.use_existing_sgs && (
+    var.networking.access_control.allow_subnet_ingress != null
+    ? var.networking.access_control.allow_subnet_ingress
+    : length(var.networking.access_control.allowed_sg_ids) == 0
+  )
 
   rds_security_group_ids = local.use_existing_sgs ? var.networking.access_control.existing_sg_ids : [aws_security_group.rds[0].id]
 }
 
 data "aws_subnet" "rds" {
-  for_each = local.use_subnet_fallback ? toset(var.networking.subnet_ids) : toset([])
+  for_each = local.use_subnet_ingress ? toset(var.networking.subnet_ids) : toset([])
   id       = each.value
 }
 
@@ -39,7 +43,7 @@ resource "aws_security_group" "rds" {
   }
 
   dynamic "ingress" {
-    for_each = local.use_subnet_fallback ? [1] : []
+    for_each = local.use_subnet_ingress ? [1] : []
     content {
       description = "Allow Postgres from RDS subnets"
       from_port   = 5432
