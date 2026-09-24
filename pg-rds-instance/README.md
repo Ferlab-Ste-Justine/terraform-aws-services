@@ -12,7 +12,7 @@ variables with sane defaults.
 | `rds_instance_identifier` | `string` | yes | RDS instance name |
 | `account_id` | `string` | yes | AWS account ID |
 | `admin_credentials` | `object` (sensitive) | yes | `{ username = "root", password }` — root credentials |
-| `networking` | `object` | yes | `{ subnet_ids, access_control{existing_sg_ids, allowed_sg_ids, allow_subnet_ingress}, publicly_accessible }` |
+| `networking` | `object` | yes | `{ subnet_ids, access_control{allowed_ingress{sg_ids, subnet}, apply_existing_sg_ids}, publicly_accessible }` |
 | `region` | `string` | no | AWS region (default `ca-central-1`) |
 | `vpc_id` | `string` | no | VPC ID (needed for the security group) |
 | `postgres_version` | `string` | no | Default `14` |
@@ -33,19 +33,35 @@ variables with sane defaults.
 
 ## Access control
 
-`access_control` decides what is allowed to reach 5432.
+`access_control` decides what is allowed to reach 5432. Nothing in it is
+exclusive: the options combine.
 
-- `existing_sg_ids` — attach the instance to security groups you manage yourself.
-  The module then creates no security group and adds no rule.
-- `allowed_sg_ids` — the module creates its security group and authorises those
-  security groups.
-- `allow_subnet_ingress` — whether the module also authorises the CIDRs of
-  `subnet_ids`. Left unset it is on when `allowed_sg_ids` is empty and off
-  otherwise, which is the historical behaviour.
+- `apply_existing_sg_ids` — security groups you manage yourself, attached to the
+  instance as-is. The module adds no rule to them.
+- `allowed_ingress.sg_ids` — the module creates its own security group and
+  authorises these security groups on 5432.
+- `allowed_ingress.subnet` — the module also authorises the CIDRs of
+  `subnet_ids`. Defaults to `false`.
 
-Set `allow_subnet_ingress = true` alongside `allowed_sg_ids` to authorise both at
-once. That matters when moving clients from one source to the other: a security
-group that is not yet attached to any network interface authorises nothing, so
-switching in a single step cuts every existing client. Authorise both, move the
-clients, then drop the subnet CIDRs.
+When `allowed_ingress` asks for anything, the module creates one security group
+for it and attaches it **in addition to** `apply_existing_sg_ids`.
 
+Leaving every option empty is rejected at plan time: a database nothing can
+reach is almost certainly not what the caller wants.
+
+### Moving clients from one source to another
+
+A security group that is not yet attached to any network interface authorises
+nothing, so switching in one step cuts every existing client. Authorise both
+sources, move the clients, then drop the one you no longer need:
+
+```
+access_control = {
+  allowed_ingress = { subnet = true }                          # before
+  allowed_ingress = { subnet = true, sg_ids = ["sg-..."] }     # during
+  allowed_ingress = { sg_ids = ["sg-..."] }                    # after
+}
+```
+
+Ingress and egress are declared as `aws_vpc_security_group_*_rule` resources
+rather than inline blocks, so adding a source does not revoke the others first.

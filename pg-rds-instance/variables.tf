@@ -129,16 +129,23 @@ variable "networking" {
   type = object({
     subnet_ids = list(string)
     access_control = optional(object({
-      existing_sg_ids = optional(list(string), [])
-      allowed_sg_ids = optional(list(string), [])
-      allow_subnet_ingress = optional(bool, null)
-    }), {
-      existing_sg_ids = []
-      allowed_sg_ids = []
-      allow_subnet_ingress = null
-    })
+      allowed_ingress = optional(object({
+        sg_ids = optional(list(string), [])
+        subnet = optional(bool, false)
+      }))
+      apply_existing_sg_ids = optional(list(string), [])
+    }))
     #Note that for a true value to work, the database still need to belong to a public subnet 
     #and have security groups that allow the incoming traffic.
     publicly_accessible = optional(bool, false)
   })
+
+  validation {
+    condition = (
+      length(try(var.networking.access_control.apply_existing_sg_ids, [])) > 0
+      || try(var.networking.access_control.allowed_ingress.subnet, false)
+      || length(try(var.networking.access_control.allowed_ingress.sg_ids, [])) > 0
+    )
+    error_message = "networking.access_control must allow at least one ingress source: apply_existing_sg_ids, allowed_ingress.sg_ids or allowed_ingress.subnet. A database nothing can reach is almost certainly not what the caller wants."
+  }
 }
