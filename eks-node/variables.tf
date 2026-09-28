@@ -44,6 +44,12 @@ variable "instance_categories" {
   type        = list(string)
 }
 
+variable "min_instance_cpu" {
+  description = "Smallest vCPU count the NodePool may pick; leave null to allow any size."
+  type        = number
+  default     = null
+}
+
 variable "architecture" {
   description = "CPU architectures allowed by the NodePool, e.g. [\"amd64\"] or [\"arm64\"]"
   type        = list(string)

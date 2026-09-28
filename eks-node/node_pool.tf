@@ -38,6 +38,13 @@ resource "kubernetes_manifest" "karpenter_nodepool" {
                 values   = var.capacity_type
               },
             ],
+            var.min_instance_cpu != null ? [
+              {
+                key      = "eks.amazonaws.com/instance-cpu"
+                operator = "Gt"
+                values   = [tostring(var.min_instance_cpu - 1)]
+              }
+            ] : [],
             length(var.topology_zones) > 0 ? [
               {
                 key      = "topology.kubernetes.io/zone"
