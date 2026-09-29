@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 resource "aws_cloudwatch_log_group" "pipeline_logs" {
   name              = "/terracd-pipeline/${var.name}"
   retention_in_days = 30
@@ -12,8 +14,10 @@ resource "aws_ssm_parameter" "terracd_entrypoint" {
   name = "/terracd-pipeline/${var.name}/terracd-entrypoint"
   type = "String"
   value = templatefile("${path.module}/entrypoint.sh.tpl", {
-    terracd_config = var.task.terracd_config
-    git_auth       = var.task.git_auth
+    terracd_config              = var.task.terracd_config
+    git_auth                    = var.task.git_auth
+    git_trusted_keys_ssm_prefix = var.task.git_trusted_keys_ssm_prefix
+    region                      = var.region
   })
 
   tags = var.tags
@@ -37,6 +41,33 @@ resource "aws_iam_policy" "pipeline_entrypoint_access" {
 resource "aws_iam_role_policy_attachment" "pipeline_entrypoint_access" {
   role       = element(split("/", var.task.task_role_arn), length(split("/", var.task.task_role_arn)) - 1)
   policy_arn = aws_iam_policy.pipeline_entrypoint_access.arn
+}
+
+resource "aws_iam_policy" "pipeline_trusted_keys_access" {
+  count = var.task.git_trusted_keys_ssm_prefix == null ? 0 : 1
+
+  name = "terracd-pipeline-trusted-keys-access-${var.name}"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = ["ssm:GetParametersByPath", "ssm:GetParameter", "ssm:GetParameters"]
+        Resource = [
+          "arn:aws:ssm:${var.region}:${data.aws_caller_identity.current.account_id}:parameter${var.task.git_trusted_keys_ssm_prefix}",
+          "arn:aws:ssm:${var.region}:${data.aws_caller_identity.current.account_id}:parameter${var.task.git_trusted_keys_ssm_prefix}/*"
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "pipeline_trusted_keys_access" {
+  count = var.task.git_trusted_keys_ssm_prefix == null ? 0 : 1
+
+  role       = element(split("/", var.task.task_role_arn), length(split("/", var.task.task_role_arn)) - 1)
+  policy_arn = aws_iam_policy.pipeline_trusted_keys_access[0].arn
 }
 
 locals {

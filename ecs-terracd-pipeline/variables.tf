@@ -47,8 +47,9 @@ variable "task" {
         password_secret_arn = string
       }))
     }))
-    git_trusted_signing_keys = optional(list(string), [])
-    metrics_enabled          = optional(bool, false)
+    git_trusted_signing_keys    = optional(list(string), [])
+    git_trusted_keys_ssm_prefix = optional(string)
+    metrics_enabled             = optional(bool, false)
   })
 }
 

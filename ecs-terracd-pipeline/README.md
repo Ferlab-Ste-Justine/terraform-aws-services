@@ -25,7 +25,17 @@ stays in the calling stack.
 (512), `memory` (1024), `execution_role_arn`, `task_role_arn`,
 `environment_variables`, `terracd_config` (terracd config file content),
 `git_auth.http.{username, password_secret_arn}` (optional), `git_trusted_signing_keys`
-(optional list), `metrics_enabled` (default `false`, adds the sigv4 proxy sidecar).
+(optional list), `git_trusted_keys_ssm_prefix` (optional string), `metrics_enabled`
+(default `false`, adds the sigv4 proxy sidecar).
+
+Set `git_trusted_keys_ssm_prefix` to fetch the trusted signing keys from SSM at
+startup instead of baking them into the task definition: the entrypoint writes
+every parameter under the prefix to `/etc/terracd/git-trusted-keys/`, and the
+module grants the task role read access to that prefix. Point the terracd config's
+`gpg_public_keys_paths` at that directory - terracd walks it, so the config stays
+static as keys are added or revoked, and a revocation takes effect on the next run
+rather than on the next apply. The entrypoint exits non-zero when the prefix yields
+no key, so terracd never runs without verifying signatures.
 
 `scheduler` object: `schedule_expression` (default `rate(15 minutes)`),
 `max_retry_attempts` (default 0), `esc_cluster_arn`, `subnets`, `security_groups`.
