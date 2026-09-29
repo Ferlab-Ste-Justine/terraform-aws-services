@@ -25,30 +25,14 @@ while true; do
 done
 
 %{ if git_trusted_keys_ssm_prefix != null ~}
+KEY_NAMES=$(aws ssm get-parameters-by-path --region ${region} --path '${git_trusted_keys_ssm_prefix}' --recursive --with-decryption --query 'Parameters[].Name' --output text)
 KEY_COUNT=0
-NEXT_TOKEN=""
 
-while true; do
-    if [ -z "$NEXT_TOKEN" ]; then
-        PAGE=$(aws ssm get-parameters-by-path --region ${region} --path '${git_trusted_keys_ssm_prefix}' --recursive --with-decryption --output json)
-    else
-        PAGE=$(aws ssm get-parameters-by-path --region ${region} --path '${git_trusted_keys_ssm_prefix}' --recursive --with-decryption --starting-token "$NEXT_TOKEN" --output json)
-    fi
-
-    COUNT=$(printf '%s' "$PAGE" | python3 -c 'import json,sys; print(len(json.load(sys.stdin)["Parameters"]))')
-    IDX=0
-    while [ "$IDX" -lt "$COUNT" ]; do
-        NAME=$(printf '%s' "$PAGE" | python3 -c "import json,sys; print(json.load(sys.stdin)['Parameters'][$IDX]['Name'].rsplit('/',1)[-1])")
-        printf '%s' "$PAGE" | python3 -c "import json,sys; sys.stdout.write(json.load(sys.stdin)['Parameters'][$IDX]['Value'])" > "/etc/terracd/git-trusted-keys/$${NAME}.asc"
-        chmod 0644 "/etc/terracd/git-trusted-keys/$${NAME}.asc"
-        KEY_COUNT=$((KEY_COUNT + 1))
-        IDX=$((IDX + 1))
-    done
-
-    NEXT_TOKEN=$(printf '%s' "$PAGE" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("NextToken",""))')
-    if [ -z "$NEXT_TOKEN" ]; then
-        break
-    fi
+for KEY_NAME in $KEY_NAMES; do
+    KEY_FILE="/etc/terracd/git-trusted-keys/$(basename "$KEY_NAME").asc"
+    aws ssm get-parameter --region ${region} --name "$KEY_NAME" --with-decryption --query 'Parameter.Value' --output text > "$KEY_FILE"
+    chmod 0644 "$KEY_FILE"
+    KEY_COUNT=$((KEY_COUNT + 1))
 done
 
 if [ "$KEY_COUNT" -eq 0 ]; then
